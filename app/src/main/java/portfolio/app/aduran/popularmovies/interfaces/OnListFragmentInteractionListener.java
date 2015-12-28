@@ -1,7 +1,7 @@
 package portfolio.app.aduran.popularmovies.interfaces;
 
 
-import portfolio.app.aduran.popularmovies.dummy.DummyContent;
+import portfolio.app.aduran.popularmovies.models.Movie;
 
 /**
  * This interface must be implemented by activities that contain this
@@ -14,5 +14,5 @@ import portfolio.app.aduran.popularmovies.dummy.DummyContent;
  * >Communicating with Other Fragments</a> for more information.
  */
 public interface OnListFragmentInteractionListener {
-    void onListFragmentInteraction(DummyContent.DummyItem item);
+    void onListFragmentInteraction(Movie movie);
 }

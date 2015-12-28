@@ -1,12 +1,15 @@
 package portfolio.app.aduran.popularmovies;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import portfolio.app.aduran.popularmovies.dummy.DummyContent;
 import portfolio.app.aduran.popularmovies.interfaces.OnListFragmentInteractionListener;
+import portfolio.app.aduran.popularmovies.models.Movie;
 
 public class MainActivity extends AppCompatActivity implements OnListFragmentInteractionListener{
+    private static final String MOVIE_EXTRA = "movie";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,7 +26,9 @@ public class MainActivity extends AppCompatActivity implements OnListFragmentInt
 
 
     @Override
-    public void onListFragmentInteraction(DummyContent.DummyItem item) {
-
+    public void onListFragmentInteraction(Movie movie) {
+        Intent intent = new Intent(this, MovieActivity.class);
+        intent.putExtra(MOVIE_EXTRA, movie);
+        startActivity(intent);
     }
 }

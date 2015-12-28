@@ -1,6 +1,7 @@
 package portfolio.app.aduran.popularmovies;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 import com.google.gson.Gson;
 
@@ -26,9 +28,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
-import portfolio.app.aduran.popularmovies.ViewAdapters.MoviePosterRecyclerViewAdapter;
-import portfolio.app.aduran.popularmovies.dummy.DummyContent;
+import portfolio.app.aduran.popularmovies.viewadapters.MoviePosterRecyclerViewAdapter;
 import portfolio.app.aduran.popularmovies.interfaces.OnListFragmentInteractionListener;
 import portfolio.app.aduran.popularmovies.models.Movie;
 
@@ -44,7 +46,9 @@ public class MoviePosterFragment extends Fragment {
     private final String API_KEY = "abc9deb8e6d7494797aad038604f7aeb";
     private static final String ARG_COLUMN_COUNT = "column-count";
     private int mColumnCount = 2;
+    private MoviePosterRecyclerViewAdapter moviePosterRecyclerViewAdapter;
     private OnListFragmentInteractionListener mListener;
+    private List<Movie> movieList;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -82,6 +86,8 @@ public class MoviePosterFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_movieposter_list, container, false);
+        movieList = new ArrayList<>();
+
 
         // Set the adapter
         if (view instanceof RecyclerView) {
@@ -89,10 +95,16 @@ public class MoviePosterFragment extends Fragment {
             RecyclerView recyclerView = (RecyclerView) view;
             if (mColumnCount <= 1) {
                 recyclerView.setLayoutManager(new LinearLayoutManager(context));
+            } else if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
+                recyclerView.setLayoutManager(linearLayoutManager);
+                linearLayoutManager.setOrientation(LinearLayout.HORIZONTAL);
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            recyclerView.setAdapter(new MoviePosterRecyclerViewAdapter(DummyContent.ITEMS, mListener));
+
+            moviePosterRecyclerViewAdapter = new MoviePosterRecyclerViewAdapter(movieList, mListener, getActivity());
+            recyclerView.setAdapter(moviePosterRecyclerViewAdapter);
         }
         return view;
     }
@@ -210,6 +222,15 @@ public class MoviePosterFragment extends Fragment {
             }
 
             return moviesList;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<Movie> movies) {
+            if(movies != null) {
+                movieList.clear();
+                movieList.addAll(movies);
+                moviePosterRecyclerViewAdapter.notifyDataSetChanged();
+            }
         }
     }
 
