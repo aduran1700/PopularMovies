@@ -1,11 +1,15 @@
 package portfolio.app.aduran.popularmovies;
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -41,14 +45,16 @@ import portfolio.app.aduran.popularmovies.models.Movie;
  * interface.
  */
 public class MoviePosterFragment extends Fragment {
-
+    public static final String MOVIE_PREFERENCES = "Movie_Prefs" ;
     private final String LOG_TAG = MoviePosterFragment.class.getSimpleName();
-    private final String API_KEY = "abc9deb8e6d7494797aad038604f7aeb";
+    private final String API_KEY = "";
     private static final String ARG_COLUMN_COUNT = "column-count";
     private int mColumnCount = 2;
     private MoviePosterRecyclerViewAdapter moviePosterRecyclerViewAdapter;
     private OnListFragmentInteractionListener mListener;
     private List<Movie> movieList;
+    SharedPreferences sharedpreferences;
+
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -77,35 +83,52 @@ public class MoviePosterFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        sharedpreferences = getActivity().getSharedPreferences(MOVIE_PREFERENCES, Context.MODE_PRIVATE);
+
+
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
         }
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_movieposter_list, container, false);
         movieList = new ArrayList<>();
 
 
-        // Set the adapter
-        if (view instanceof RecyclerView) {
-            Context context = view.getContext();
-            RecyclerView recyclerView = (RecyclerView) view;
-            if (mColumnCount <= 1) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            } else if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
-                recyclerView.setLayoutManager(linearLayoutManager);
-                linearLayoutManager.setOrientation(LinearLayout.HORIZONTAL);
-            } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
-            }
-
-            moviePosterRecyclerViewAdapter = new MoviePosterRecyclerViewAdapter(movieList, mListener, getActivity());
-            recyclerView.setAdapter(moviePosterRecyclerViewAdapter);
+        final Context context = view.getContext();
+        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
+        if (mColumnCount <= 1) {
+            recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        } else if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
+            recyclerView.setLayoutManager(linearLayoutManager);
+            linearLayoutManager.setOrientation(LinearLayout.HORIZONTAL);
+        } else {
+            recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
         }
+
+        moviePosterRecyclerViewAdapter = new MoviePosterRecyclerViewAdapter(movieList, mListener, getActivity());
+        recyclerView.setAdapter(moviePosterRecyclerViewAdapter);
+
+        FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setTitle("Sort By").setItems(R.array.sort_types, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String[] arrays = getResources().getStringArray(R.array.sort_types_values);
+                        sharedpreferences.edit().putString("sort_order", arrays[which]).commit();
+                        updateMovies();
+                    }
+                }).show();
+            }
+        });
+
         return view;
     }
 
@@ -128,20 +151,18 @@ public class MoviePosterFragment extends Fragment {
     }
 
     private void updateMovies() {
-        new MovieAsyncTask().execute("popularity.desc");
+        new MovieAsyncTask().execute();
     }
 
-    public class MovieAsyncTask extends AsyncTask<String, Void, ArrayList<Movie>> {
+    public class MovieAsyncTask extends AsyncTask<Void, Void, ArrayList<Movie>> {
 
         @Override
-        protected ArrayList<Movie> doInBackground(String... params) {
-            if (params.length == 0)
-                return null;
+        protected ArrayList<Movie> doInBackground(Void... params) {
 
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
 
-            String sortBy = params[0];
+            String sortBy = sharedpreferences.getString("sort_order", "popularity.desc");
             String movieJsonStr = null;
 
             try {
@@ -226,7 +247,7 @@ public class MoviePosterFragment extends Fragment {
 
         @Override
         protected void onPostExecute(ArrayList<Movie> movies) {
-            if(movies != null) {
+            if (movies != null) {
                 movieList.clear();
                 movieList.addAll(movies);
                 moviePosterRecyclerViewAdapter.notifyDataSetChanged();
