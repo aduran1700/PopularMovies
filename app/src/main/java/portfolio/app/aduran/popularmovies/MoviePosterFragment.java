@@ -30,7 +30,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import portfolio.app.aduran.popularmovies.viewadapters.MoviePosterRecyclerViewAdapter;
+import portfolio.app.aduran.popularmovies.ViewAdapters.MoviePosterRecyclerViewAdapter;
 import portfolio.app.aduran.popularmovies.interfaces.OnListFragmentInteractionListener;
 import portfolio.app.aduran.popularmovies.models.Movie;
 

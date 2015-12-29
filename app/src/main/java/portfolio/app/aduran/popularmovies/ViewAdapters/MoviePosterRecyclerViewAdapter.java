@@ -1,29 +1,34 @@
 package portfolio.app.aduran.popularmovies.ViewAdapters;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.squareup.picasso.Picasso;
+
 import portfolio.app.aduran.popularmovies.R;
 import portfolio.app.aduran.popularmovies.ViewHolders.MoviePosterViewHolder;
-import portfolio.app.aduran.popularmovies.dummy.DummyContent.DummyItem;
 import portfolio.app.aduran.popularmovies.interfaces.OnListFragmentInteractionListener;
+import portfolio.app.aduran.popularmovies.models.Movie;
 
 import java.util.List;
 
 /**
- * {@link RecyclerView.Adapter} that can display a {@link DummyItem} and makes a call to the
+ * {@link RecyclerView.Adapter} that can display a {@link Movie} and makes a call to the
  * specified {@link OnListFragmentInteractionListener}.
  */
 public class MoviePosterRecyclerViewAdapter extends RecyclerView.Adapter<MoviePosterViewHolder> {
 
-    private final List<DummyItem> mValues;
+    private final List<Movie> mValues;
     private final OnListFragmentInteractionListener mListener;
+    private final Context context;
 
-    public MoviePosterRecyclerViewAdapter(List<DummyItem> items, OnListFragmentInteractionListener listener) {
+    public MoviePosterRecyclerViewAdapter(List<Movie> items, OnListFragmentInteractionListener listener, Context context) {
         mValues = items;
         mListener = listener;
+        this.context = context;
     }
 
     @Override
@@ -36,8 +41,8 @@ public class MoviePosterRecyclerViewAdapter extends RecyclerView.Adapter<MoviePo
     @Override
     public void onBindViewHolder(final MoviePosterViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
-        holder.mIdView.setText(mValues.get(position).id);
-        holder.mContentView.setText(mValues.get(position).content);
+        Picasso.with(context).load(holder.mItem.getPosterFullURL()).into(holder.moviePoster);
+
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
