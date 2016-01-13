@@ -47,7 +47,7 @@ import portfolio.app.aduran.popularmovies.models.Movie;
 public class MoviePosterFragment extends Fragment {
     public static final String MOVIE_PREFERENCES = "Movie_Prefs" ;
     private final String LOG_TAG = MoviePosterFragment.class.getSimpleName();
-    private final String API_KEY = "";
+    private final String API_KEY = "abc9deb8e6d7494797aad038604f7aeb";
     private static final String ARG_COLUMN_COUNT = "column-count";
     private int mColumnCount = 2;
     private MoviePosterRecyclerViewAdapter moviePosterRecyclerViewAdapter;
