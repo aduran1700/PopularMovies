@@ -4,11 +4,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.net.Uri;
-import android.os.AsyncTask;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,24 +21,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
-import com.google.gson.Gson;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
 import portfolio.app.aduran.popularmovies.ViewAdapters.MoviePosterRecyclerViewAdapter;
+import portfolio.app.aduran.popularmovies.data.MovieProvider;
 import portfolio.app.aduran.popularmovies.interfaces.OnListFragmentInteractionListener;
-import portfolio.app.aduran.popularmovies.models.Movie;
 
 /**
  * A fragment representing a list of Items.
@@ -44,16 +31,18 @@ import portfolio.app.aduran.popularmovies.models.Movie;
  * Activities containing this fragment MUST implement the {@link OnListFragmentInteractionListener}
  * interface.
  */
-public class MoviePosterFragment extends Fragment {
-    public static final String MOVIE_PREFERENCES = "Movie_Prefs" ;
+public class MoviePosterFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private final String LOG_TAG = MoviePosterFragment.class.getSimpleName();
-    private final String API_KEY = "abc9deb8e6d7494797aad038604f7aeb";
+
     private static final String ARG_COLUMN_COUNT = "column-count";
+    public static final String MOVIE_PREFERENCES = "Movie_Prefs" ;
+    private static final int CURSOR_LOADER_ID = 0;
+
     private int mColumnCount = 2;
     private MoviePosterRecyclerViewAdapter moviePosterRecyclerViewAdapter;
     private OnListFragmentInteractionListener mListener;
-    private List<Movie> movieList;
     SharedPreferences sharedpreferences;
+    private String sortBy;
 
 
     /**
@@ -84,6 +73,7 @@ public class MoviePosterFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         sharedpreferences = getActivity().getSharedPreferences(MOVIE_PREFERENCES, Context.MODE_PRIVATE);
+        sortBy = sharedpreferences.getString("sort_order", "popularity.desc");
 
 
         if (getArguments() != null) {
@@ -92,10 +82,15 @@ public class MoviePosterFragment extends Fragment {
     }
 
     @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_movieposter_list, container, false);
-        movieList = new ArrayList<>();
 
 
         final Context context = view.getContext();
@@ -110,7 +105,7 @@ public class MoviePosterFragment extends Fragment {
             recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
         }
 
-        moviePosterRecyclerViewAdapter = new MoviePosterRecyclerViewAdapter(movieList, mListener, getActivity());
+        moviePosterRecyclerViewAdapter = new MoviePosterRecyclerViewAdapter(mListener, getActivity(), null);
         recyclerView.setAdapter(moviePosterRecyclerViewAdapter);
 
         FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.fab);
@@ -122,7 +117,7 @@ public class MoviePosterFragment extends Fragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String[] arrays = getResources().getStringArray(R.array.sort_types_values);
-                        sharedpreferences.edit().putString("sort_order", arrays[which]).commit();
+                        sharedpreferences.edit().putString("sort_order", arrays[which]).apply();
                         updateMovies();
                     }
                 }).show();
@@ -151,109 +146,25 @@ public class MoviePosterFragment extends Fragment {
     }
 
     private void updateMovies() {
-        new MovieAsyncTask().execute();
+        new FetchMoviesTask(getContext()).execute(sortBy);
     }
 
-    public class MovieAsyncTask extends AsyncTask<Void, Void, ArrayList<Movie>> {
-
-        @Override
-        protected ArrayList<Movie> doInBackground(Void... params) {
-
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-
-            String sortBy = sharedpreferences.getString("sort_order", "popularity.desc");
-            String movieJsonStr = null;
-
-            try {
-                final String MOVIE_BASE_URL = "http://api.themoviedb.org/3/discover/movie?";
-                final String SORT_PARAM = "sort_by";
-                final String API_KEY_PARAM = "api_key";
-
-                Uri uri = Uri.parse(MOVIE_BASE_URL).buildUpon()
-                        .appendQueryParameter(SORT_PARAM, sortBy)
-                        .appendQueryParameter(API_KEY_PARAM, API_KEY)
-                        .build();
-
-
-                URL url = new URL(uri.toString());
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
-
-                // Read the input stream into a String
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuilder buffer = new StringBuilder();
-                if (inputStream == null) {
-                    // Nothing to do.
-                    return null;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-                    // But it does make debugging a *lot* easier if you print out the completed
-                    // buffer for debugging.
-                    buffer.append(line).append("\n");
-                }
-
-                if (buffer.length() == 0) {
-                    // Stream was empty.  No point in parsing.
-                    return null;
-                }
-
-                movieJsonStr = buffer.toString();
-                Log.v(LOG_TAG, movieJsonStr);
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "Error ", e);
-
-                return null;
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e(LOG_TAG, "Error closing stream", e);
-                    }
-                }
-            }
-
-
-            return getMovieList(movieJsonStr);
-        }
-
-        private ArrayList<Movie> getMovieList(String movieJsonStr) {
-
-
-            ArrayList<Movie> moviesList = new ArrayList<>();
-            try {
-                JSONObject moviesJson = new JSONObject(movieJsonStr);
-                JSONArray moviesArray = moviesJson.getJSONArray("results");
-
-
-                for (int i = 0; i < moviesArray.length(); i++)
-                    moviesList.add(new Gson().fromJson(moviesArray.get(i).toString(), Movie.class));
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, "Error ", e);
-                return new ArrayList<>();
-            }
-
-            return moviesList;
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<Movie> movies) {
-            if (movies != null) {
-                movieList.clear();
-                movieList.addAll(movies);
-                moviePosterRecyclerViewAdapter.notifyDataSetChanged();
-            }
-        }
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new CursorLoader(getActivity(), MovieProvider.Movies.CONTENT_URI,
+                null,
+                null,
+                null,
+                null);
     }
 
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
 }

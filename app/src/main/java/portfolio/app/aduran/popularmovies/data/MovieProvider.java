@@ -7,7 +7,6 @@ import net.simonvt.schematic.annotation.ContentUri;
 import net.simonvt.schematic.annotation.InexactContentUri;
 import net.simonvt.schematic.annotation.TableEndpoint;
 
-import portfolio.app.aduran.popularmovies.models.Movie;
 
 /**
  * Created by aduran on 1/13/16.
