@@ -15,6 +15,7 @@ public class Movie implements Parcelable {
         this.plotSynopsis = in.readString();
         this.userRating = in.readDouble();
         this.releaseDate = in.readString();
+        this.popularity = in.readString();
     }
 
     @SerializedName("original_title")
@@ -32,6 +33,9 @@ public class Movie implements Parcelable {
     @SerializedName("release_date")
     private String releaseDate;
 
+    @SerializedName("popularity")
+    private String popularity;
+
     public String getPosterFullURL() {
         return BASE_POSTER_URL + poster;
     }
@@ -41,9 +45,10 @@ public class Movie implements Parcelable {
         return "Movie{" +
                 "originalTitle='" + originalTitle + '\'' +
                 ", poster='" + poster + '\'' +
-                ", plotSynpsis='" + plotSynopsis + '\'' +
+                ", plotSynopsis='" + plotSynopsis + '\'' +
                 ", userRating=" + userRating +
                 ", releaseDate='" + releaseDate + '\'' +
+                ", popularity='" + popularity + '\'' +
                 '}';
     }
 
@@ -59,6 +64,7 @@ public class Movie implements Parcelable {
         dest.writeString(plotSynopsis);
         dest.writeDouble(userRating);
         dest.writeString(releaseDate);
+        dest.writeString(popularity);
     }
 
     public static final Parcelable.Creator<Movie> CREATOR
@@ -111,5 +117,9 @@ public class Movie implements Parcelable {
 
     public void setReleaseDate(String releaseDate) {
         this.releaseDate = releaseDate;
+    }
+
+    public String getPopularity() {
+        return popularity;
     }
 }
