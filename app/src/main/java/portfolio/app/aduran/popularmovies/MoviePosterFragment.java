@@ -15,13 +15,13 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import portfolio.app.aduran.popularmovies.ViewAdapters.MoviePosterRecyclerViewAdapter;
+import portfolio.app.aduran.popularmovies.data.MovieColumns;
 import portfolio.app.aduran.popularmovies.data.MovieProvider;
 import portfolio.app.aduran.popularmovies.interfaces.OnListFragmentInteractionListener;
 
@@ -57,6 +57,12 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
         super.onStart();
         updateMovies();
 
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
     }
 
     @SuppressWarnings("unused")
@@ -95,6 +101,7 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
 
         final Context context = view.getContext();
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
+
         if (mColumnCount <= 1) {
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
         } else if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -117,7 +124,9 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String[] arrays = getResources().getStringArray(R.array.sort_types_values);
-                        sharedpreferences.edit().putString("sort_order", arrays[which]).apply();
+                        sortBy = arrays[which];
+                        sharedpreferences.edit().putString("sort_order", sortBy).apply();
+
                         updateMovies();
                     }
                 }).show();
@@ -155,16 +164,18 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
                 null,
                 null,
                 null,
-                null);
+              MovieColumns._ID);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        moviePosterRecyclerViewAdapter.swapCursor(data);
 
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+        moviePosterRecyclerViewAdapter.swapCursor(null);
 
     }
 }

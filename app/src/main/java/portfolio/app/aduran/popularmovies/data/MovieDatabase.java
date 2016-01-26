@@ -19,4 +19,5 @@ public final class MovieDatabase {
 
     @Table(FavoriteMovieColumns.class)
     public static final String FAVORITE_MOVIES = "favorite_movie";
+
 }

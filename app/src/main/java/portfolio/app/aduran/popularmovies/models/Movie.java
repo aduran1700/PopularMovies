@@ -10,13 +10,27 @@ public class Movie implements Parcelable {
     private final String BASE_POSTER_URL = "http://image.tmdb.org/t/p/w185";
 
     Movie(Parcel in) {
+        this.movieId = in.readInt();
         this.originalTitle = in.readString();
         this.poster = in.readString();
         this.plotSynopsis = in.readString();
         this.userRating = in.readDouble();
         this.releaseDate = in.readString();
-        this.popularity = in.readString();
+        this.popularity = in.readDouble();
     }
+
+    public Movie(int movieId, String originalTitle, String poster, String plotSynopsis, double userRating, String releaseDate, double popularity) {
+        this.movieId = movieId;
+        this.originalTitle = originalTitle;
+        this.poster = poster;
+        this.plotSynopsis = plotSynopsis;
+        this.userRating = userRating;
+        this.releaseDate = releaseDate;
+        this.popularity = popularity;
+    }
+
+    @SerializedName("id")
+    private int movieId;
 
     @SerializedName("original_title")
     private String originalTitle;
@@ -34,22 +48,10 @@ public class Movie implements Parcelable {
     private String releaseDate;
 
     @SerializedName("popularity")
-    private String popularity;
+    private double popularity;
 
     public String getPosterFullURL() {
         return BASE_POSTER_URL + poster;
-    }
-
-    @Override
-    public String toString() {
-        return "Movie{" +
-                "originalTitle='" + originalTitle + '\'' +
-                ", poster='" + poster + '\'' +
-                ", plotSynopsis='" + plotSynopsis + '\'' +
-                ", userRating=" + userRating +
-                ", releaseDate='" + releaseDate + '\'' +
-                ", popularity='" + popularity + '\'' +
-                '}';
     }
 
     @Override
@@ -59,12 +61,13 @@ public class Movie implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(movieId);
         dest.writeString(originalTitle);
         dest.writeString(poster);
         dest.writeString(plotSynopsis);
         dest.writeDouble(userRating);
         dest.writeString(releaseDate);
-        dest.writeString(popularity);
+        dest.writeDouble(popularity);
     }
 
     public static final Parcelable.Creator<Movie> CREATOR
@@ -119,7 +122,11 @@ public class Movie implements Parcelable {
         this.releaseDate = releaseDate;
     }
 
-    public String getPopularity() {
+    public double getPopularity() {
         return popularity;
+    }
+
+    public int getMovieId() {
+        return movieId;
     }
 }

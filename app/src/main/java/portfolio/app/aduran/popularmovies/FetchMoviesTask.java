@@ -33,7 +33,7 @@ import portfolio.app.aduran.popularmovies.models.Movie;
 public class FetchMoviesTask extends AsyncTask<String, Void, Void> {
 
     private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
-    private final String API_KEY = "abc9deb8e6d7494797aad038604f7aeb";
+    private final String API_KEY = "";
     private Context mContext;
 
     public FetchMoviesTask(Context context) {
@@ -123,6 +123,7 @@ public class FetchMoviesTask extends AsyncTask<String, Void, Void> {
                 ContentProviderOperation.Builder builder = ContentProviderOperation.newInsert(MovieProvider.Movies.CONTENT_URI);
 
                 builder.withValue(MovieColumns.COLUMN_ORIGINAL_TITLE, movie.getOriginalTitle());
+                builder.withValue(MovieColumns.COLUMN_MOVIE_ID, movie.getMovieId());
                 builder.withValue(MovieColumns.COLUMN_OVERVIEW, movie.getPlotSynopsis());
                 builder.withValue(MovieColumns.COLUMN_POSTER_PATH, movie.getPosterFullURL());
                 builder.withValue(MovieColumns.COLUMN_RELEASE_DATE, movie.getReleaseDate());
@@ -133,6 +134,7 @@ public class FetchMoviesTask extends AsyncTask<String, Void, Void> {
             }
 
 
+            mContext.getContentResolver().delete(MovieProvider.Movies.CONTENT_URI, null, null);
             mContext.getContentResolver().applyBatch(MovieProvider.AUTHORITY, batchOperations);
 
 

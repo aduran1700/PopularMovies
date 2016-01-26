@@ -1,5 +1,7 @@
 package portfolio.app.aduran.popularmovies;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
@@ -23,26 +25,22 @@ public class MovieActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie);
 
-        Movie movie = getIntent().getParcelableExtra(MOVIE_EXTRA);
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        if (savedInstanceState == null) {
 
-        Picasso.with(this).load(movie.getPosterFullURL()).into((ImageView) findViewById(R.id.movie_poster));
-        ((TextView) findViewById(R.id.movie_title)).setText(movie.getOriginalTitle());
-        ((TextView) findViewById(R.id.movie_synopsis)).setText(movie.getPlotSynopsis());
-        try {
-            Date movieDate = simpleDateFormat.parse(movie.getReleaseDate());
-            simpleDateFormat = new SimpleDateFormat("MMMM yyyy");
-            ((TextView) findViewById(R.id.movie_date)).setText(simpleDateFormat.format(movieDate));
-        } catch (ParseException e) {
-            e.printStackTrace();
+            Bundle arguments = new Bundle();
+            arguments.putParcelable(MovieFragment.MOVIE_URI, getIntent().getExtras().getParcelable(MovieFragment.MOVIE_URI));
+
+            MovieFragment fragment = new MovieFragment();
+            fragment.setArguments(arguments);
+
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.movie_detail_container, fragment)
+                    .commit();
         }
-
-        ((TextView) findViewById(R.id.movie_rating)).setText(Math.round(movie.getUserRating()) + "/10");
-
 
     }
 

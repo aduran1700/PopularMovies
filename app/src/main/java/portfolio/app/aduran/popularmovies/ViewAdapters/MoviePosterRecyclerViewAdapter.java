@@ -54,12 +54,10 @@ public class MoviePosterRecyclerViewAdapter extends CursorRecyclerViewAdapter<Mo
                 if (null != mListener) {
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
-                    mListener.onListFragmentInteraction(MovieProvider.Movies.withId(cursor.getColumnIndex(MovieColumns.COLUMN_MOVIE_ID)));
+                    mListener.onListFragmentInteraction(MovieProvider.Movies.withId(cursor.getInt(cursor.getColumnIndex(MovieColumns._ID))));
                 }
             }
         });
-
-
     }
 
 }

@@ -8,14 +8,12 @@ import net.simonvt.schematic.annotation.InexactContentUri;
 import net.simonvt.schematic.annotation.TableEndpoint;
 
 
-/**
- * Created by aduran on 1/13/16.
- */
+
 @ContentProvider(authority = MovieProvider.AUTHORITY, database = MovieDatabase.class)
 public final class MovieProvider {
-    public static final String AUTHORITY = "portfolio.app.aduran.popularmovies.data";
+    public static final String AUTHORITY = "portfolio.app.aduran.popularmovies.data.MovieProvider";
 
-    static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AUTHORITY);
+    public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AUTHORITY);
 
     interface Path {
         String MOVIES = "movies";

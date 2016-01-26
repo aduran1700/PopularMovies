@@ -22,7 +22,7 @@
 
         <provider
             android:authorities="portfolio.app.aduran.popularmovies.data.MovieProvider"
-            android:name="portfolio.app.aduran.popularmovies.data.generated.MovieProvider"
+            android:name=".data.generated.MovieProvider"
             android:exported="false"/>
     </application>
 
