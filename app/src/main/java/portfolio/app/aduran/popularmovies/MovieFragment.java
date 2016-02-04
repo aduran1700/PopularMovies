@@ -126,7 +126,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             e.printStackTrace();
         }
 
-            mMovieRatingView.setText(Math.round(movie.getUserRating()) + "/10");
+            mMovieRatingView.setText(movie.getUserRating() + "/10");
         }
     }
 

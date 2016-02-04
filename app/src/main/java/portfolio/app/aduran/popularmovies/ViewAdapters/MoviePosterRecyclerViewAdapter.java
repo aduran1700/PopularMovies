@@ -42,22 +42,22 @@ public class MoviePosterRecyclerViewAdapter extends CursorRecyclerViewAdapter<Mo
     }
 
     @Override
-    public void onBindViewHolder(MoviePosterViewHolder viewHolder, final Cursor cursor) {
+    public void onBindViewHolder(final MoviePosterViewHolder viewHolder, final Cursor cursor) {
         DatabaseUtils.dumpCursor(cursor);
 
         Picasso.with(mContext).load(cursor.getString(cursor.getColumnIndex(MovieColumns.COLUMN_POSTER_PATH))).into(viewHolder.moviePoster);
+        viewHolder.id = cursor.getInt(cursor.getColumnIndex(MovieColumns._ID));
 
-
-        viewHolder.mView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (null != mListener) {
-                    // Notify the active callbacks interface (the activity, if the
-                    // fragment is attached to one) that an item has been selected.
-                    mListener.onListFragmentInteraction(MovieProvider.Movies.withId(cursor.getInt(cursor.getColumnIndex(MovieColumns._ID))));
-                }
-            }
-        });
+                viewHolder.moviePoster.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (null != mListener) {
+                            // Notify the active callbacks interface (the activity, if the
+                            // fragment is attached to one) that an item has been selected.
+                            mListener.onListFragmentInteraction(MovieProvider.Movies.withId(viewHolder.id));
+                        }
+                    }
+                });
     }
 
 }
