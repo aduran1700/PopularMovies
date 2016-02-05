@@ -3,6 +3,8 @@ package portfolio.app.aduran.popularmovies.interfaces;
 
 import android.net.Uri;
 
+import portfolio.app.aduran.popularmovies.models.Movie;
+
 /**
  * This interface must be implemented by activities that contain this
  * fragment to allow an interaction in this fragment to be communicated
@@ -15,4 +17,6 @@ import android.net.Uri;
  */
 public interface OnListFragmentInteractionListener {
     void onListFragmentInteraction(Uri uri);
+
+    void onListFragmentInteraction(Movie movie);
 }

@@ -1,18 +1,12 @@
 package portfolio.app.aduran.popularmovies;
 
-import android.app.Activity;
 import android.content.ContentProviderOperation;
 import android.content.Context;
-import android.content.OperationApplicationException;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.RemoteException;
 import android.util.Log;
 
 import com.google.gson.Gson;
-
-import net.simonvt.schematic.annotation.ContentProvider;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,28 +20,25 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
-import portfolio.app.aduran.popularmovies.data.MovieColumns;
-import portfolio.app.aduran.popularmovies.data.MovieProvider;
+import portfolio.app.aduran.popularmovies.interfaces.UpdateListListener;
 import portfolio.app.aduran.popularmovies.models.Movie;
 
-public class FetchMoviesTask extends AsyncTask<String, Void, Void> {
+public class FetchMoviesTask extends AsyncTask<Object, Void, ArrayList<Movie>> {
 
     private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
-    private final String API_KEY = "";
-    private Context mContext;
+    private final String API_KEY = "abc9deb8e6d7494797aad038604f7aeb";
+    UpdateListListener updateListListener;
 
-    public FetchMoviesTask(Context context) {
-        mContext = context;
-    }
 
 
     @Override
-    protected Void doInBackground(String... params) {
+    protected ArrayList<Movie> doInBackground(Object... params) {
 
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
 
-        String sortBy = params[0];
+        String sortBy = (String) params[0];
+        updateListListener = (UpdateListListener) params[1];
         String movieJsonStr = null;
 
         try {
@@ -113,38 +104,23 @@ public class FetchMoviesTask extends AsyncTask<String, Void, Void> {
             JSONObject moviesJson = new JSONObject(movieJsonStr);
             JSONArray moviesArray = moviesJson.getJSONArray("results");
 
-            ArrayList<ContentProviderOperation> batchOperations = new ArrayList<>(moviesArray.length());
-
 
             for (int i = 0; i < moviesArray.length(); i++) {
                 moviesList.add(new Gson().fromJson(moviesArray.get(i).toString(), Movie.class));
-                Movie movie = moviesList.get(i);
-
-                ContentProviderOperation.Builder builder = ContentProviderOperation.newInsert(MovieProvider.Movies.CONTENT_URI);
-
-                builder.withValue(MovieColumns.COLUMN_ORIGINAL_TITLE, movie.getOriginalTitle());
-                builder.withValue(MovieColumns.COLUMN_MOVIE_ID, movie.getMovieId());
-                builder.withValue(MovieColumns.COLUMN_OVERVIEW, movie.getPlotSynopsis());
-                builder.withValue(MovieColumns.COLUMN_POSTER_PATH, movie.getPosterFullURL());
-                builder.withValue(MovieColumns.COLUMN_RELEASE_DATE, movie.getReleaseDate());
-                builder.withValue(MovieColumns.COLUMN_VOTE_AVERAGE, movie.getUserRating());
-                builder.withValue(MovieColumns.COLUMN_POPULARITY, movie.getPopularity());
-                batchOperations.add(builder.build());
-
             }
-
-
-            mContext.getContentResolver().delete(MovieProvider.Movies.CONTENT_URI, null, null);
-            mContext.getContentResolver().applyBatch(MovieProvider.AUTHORITY, batchOperations);
 
 
         } catch (JSONException e) {
             Log.e(LOG_TAG, "Error ", e);
-        } catch (RemoteException | OperationApplicationException e) {
-            e.printStackTrace();
         }
 
 
-        return null;
+        return moviesList;
+    }
+
+    @Override
+    protected void onPostExecute(ArrayList<Movie> movies) {
+        updateListListener.updateList(movies);
+        super.onPostExecute(movies);
     }
 }

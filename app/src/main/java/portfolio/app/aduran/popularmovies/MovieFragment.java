@@ -19,15 +19,16 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import portfolio.app.aduran.popularmovies.data.generated.MovieDatabase;
 import portfolio.app.aduran.popularmovies.models.Movie;
 
 
 public class MovieFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final String LOG_TAG = MovieFragment.class.getSimpleName();
     public static final String MOVIE_URI = "URI";
+    public static final String MOVIE = "MOVIE";
     private static final int MOVIE_LOADER = 0;
     private Uri mUri;
+    private Movie movie;
 
     private ImageView mMoviePosterView;
     private TextView mMovieTitleView;
@@ -46,8 +47,13 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
         Bundle arguments = getArguments();
 
-        if(arguments != null)
-            mUri = arguments.getParcelable(MovieFragment.MOVIE_URI);
+
+        if(arguments != null) {
+            if (arguments.containsKey(MovieFragment.MOVIE_URI))
+                mUri = arguments.getParcelable(MovieFragment.MOVIE_URI);
+            else
+                movie = arguments.getParcelable(MovieFragment.MOVIE);
+        }
 
         View view = inflater.inflate(R.layout.fragment_movie, container, false);
 
@@ -57,20 +63,24 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         mMovieDateView = ((TextView) view.findViewById(R.id.movie_date));
         mMovieRatingView = ((TextView) view.findViewById(R.id.movie_rating));
 
-        //SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        if(null != movie) {
 
-        //Picasso.with(getActivity()).load(movie.getPosterFullURL()).into((ImageView) view.findViewById(R.id.movie_poster));
-        //((TextView) view.findViewById(R.id.movie_title)).setText(movie.getOriginalTitle());
-        //((TextView) view.findViewById(R.id.movie_synopsis)).setText(movie.getPlotSynopsis());
-        /*try {
-            Date movieDate = simpleDateFormat.parse(movie.getReleaseDate());
-            simpleDateFormat = new SimpleDateFormat("MMMM yyyy");
-            ((TextView) view.findViewById(R.id.movie_date)).setText(simpleDateFormat.format(movieDate));
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+            Picasso.with(getActivity()).load(movie.getPosterFullURL()).into(mMoviePosterView);
+            mMovieTitleView.setText(movie.getOriginalTitle());
+            mMovieSynopsis.setText(movie.getPlotSynopsis());
+            try {
+                Date movieDate = simpleDateFormat.parse(movie.getReleaseDate());
+                simpleDateFormat = new SimpleDateFormat("MMMM yyyy");
+                mMovieDateView.setText(simpleDateFormat.format(movieDate));
         } catch (ParseException e) {
             e.printStackTrace();
-        }*/
+        }
+            String ratingText = movie.getUserRating() + "/10";
 
-        //((TextView) view.findViewById(R.id.movie_rating)).setText(Math.round(movie.getUserRating()) + "/10");
+            mMovieRatingView.setText(ratingText);
+        }
 
 
         return view;
@@ -125,8 +135,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
-            mMovieRatingView.setText(movie.getUserRating() + "/10");
+            String ratingText = movie.getUserRating() + "/10";
+            mMovieRatingView.setText(ratingText);
         }
     }
 

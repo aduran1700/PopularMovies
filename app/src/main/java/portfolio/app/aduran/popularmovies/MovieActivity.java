@@ -32,7 +32,14 @@ public class MovieActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
 
             Bundle arguments = new Bundle();
-            arguments.putParcelable(MovieFragment.MOVIE_URI, getIntent().getExtras().getParcelable(MovieFragment.MOVIE_URI));
+
+            Uri uri = getIntent().getExtras().getParcelable(MovieFragment.MOVIE_URI);
+            Movie movie = getIntent().getExtras().getParcelable(MovieFragment.MOVIE);
+
+            if(uri != null)
+                arguments.putParcelable(MovieFragment.MOVIE_URI, uri);
+            else if(movie != null)
+                arguments.putParcelable(MovieFragment.MOVIE, movie);
 
             MovieFragment fragment = new MovieFragment();
             fragment.setArguments(arguments);

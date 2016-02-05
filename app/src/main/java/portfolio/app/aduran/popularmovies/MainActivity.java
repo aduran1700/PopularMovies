@@ -31,4 +31,11 @@ public class MainActivity extends AppCompatActivity implements OnListFragmentInt
         intent.putExtra(MovieFragment.MOVIE_URI, movie);
         startActivity(intent);
     }
+
+    @Override
+    public void onListFragmentInteraction(Movie movie) {
+        Intent intent = new Intent(this, MovieActivity.class);
+        intent.putExtra(MovieFragment.MOVIE, movie);
+        startActivity(intent);
+    }
 }

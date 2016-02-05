@@ -20,10 +20,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
+import java.util.ArrayList;
+
+import portfolio.app.aduran.popularmovies.ViewAdapters.FavoriteMovieCursorRecyclerViewAdapter;
 import portfolio.app.aduran.popularmovies.ViewAdapters.MoviePosterRecyclerViewAdapter;
 import portfolio.app.aduran.popularmovies.data.MovieColumns;
 import portfolio.app.aduran.popularmovies.data.MovieProvider;
 import portfolio.app.aduran.popularmovies.interfaces.OnListFragmentInteractionListener;
+import portfolio.app.aduran.popularmovies.interfaces.UpdateListListener;
+import portfolio.app.aduran.popularmovies.models.Movie;
 
 /**
  * A fragment representing a list of Items.
@@ -31,7 +36,7 @@ import portfolio.app.aduran.popularmovies.interfaces.OnListFragmentInteractionLi
  * Activities containing this fragment MUST implement the {@link OnListFragmentInteractionListener}
  * interface.
  */
-public class MoviePosterFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class MoviePosterFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, UpdateListListener {
     private final String LOG_TAG = MoviePosterFragment.class.getSimpleName();
 
     private static final String ARG_COLUMN_COUNT = "column-count";
@@ -40,9 +45,12 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
 
     private int mColumnCount = 2;
     private MoviePosterRecyclerViewAdapter moviePosterRecyclerViewAdapter;
+    private FavoriteMovieCursorRecyclerViewAdapter favoriteMovieCursorRecyclerViewAdapter;
     private OnListFragmentInteractionListener mListener;
-    SharedPreferences sharedpreferences;
+    private SharedPreferences sharedpreferences;
     private String sortBy;
+    private ArrayList<Movie> movieList;
+    private RecyclerView recyclerView;
 
 
     /**
@@ -100,7 +108,7 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
 
 
         final Context context = view.getContext();
-        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
+        recyclerView = (RecyclerView) view.findViewById(R.id.list);
 
         if (mColumnCount <= 1) {
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
@@ -112,8 +120,9 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
             recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
         }
 
-        moviePosterRecyclerViewAdapter = new MoviePosterRecyclerViewAdapter(mListener, getActivity(), null);
-        recyclerView.setAdapter(moviePosterRecyclerViewAdapter);
+        movieList = new ArrayList<>();
+        moviePosterRecyclerViewAdapter = new MoviePosterRecyclerViewAdapter(movieList, mListener, getActivity());
+        favoriteMovieCursorRecyclerViewAdapter = new FavoriteMovieCursorRecyclerViewAdapter(mListener, getContext(), null);
 
         FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -155,7 +164,12 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
     }
 
     private void updateMovies() {
-        new FetchMoviesTask(getContext()).execute(sortBy);
+        if(sortBy.contains("favorite")) {
+            recyclerView.setAdapter(favoriteMovieCursorRecyclerViewAdapter);
+        } else {
+            recyclerView.setAdapter(moviePosterRecyclerViewAdapter);
+            new FetchMoviesTask().execute(sortBy, this);
+        }
     }
 
     @Override
@@ -169,13 +183,23 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        moviePosterRecyclerViewAdapter.swapCursor(data);
+        favoriteMovieCursorRecyclerViewAdapter.swapCursor(data);
 
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        moviePosterRecyclerViewAdapter.swapCursor(null);
+        favoriteMovieCursorRecyclerViewAdapter.swapCursor(null);
+
+    }
+
+    @Override
+    public void updateList(ArrayList<Movie> movies) {
+        if(movies != null) {
+            movieList.clear();
+            movieList.addAll(movies);
+            moviePosterRecyclerViewAdapter.notifyDataSetChanged();
+        }
 
     }
 }
