@@ -1,7 +1,5 @@
 package portfolio.app.aduran.popularmovies;
 
-import android.content.ContentProviderOperation;
-import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -20,34 +18,30 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
-import portfolio.app.aduran.popularmovies.interfaces.UpdateListListener;
-import portfolio.app.aduran.popularmovies.models.Movie;
+import portfolio.app.aduran.popularmovies.models.Trailer;
 
-public class FetchMoviesTask extends AsyncTask<Object, Void, ArrayList<Movie>> {
 
-    private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
+public class FetchMovieTrailerTask extends AsyncTask<Object, Void, ArrayList<Trailer>> {
+
+    private final String LOG_TAG = FetchMovieTrailerTask.class.getSimpleName();
     private final String API_KEY = "";
-    UpdateListListener updateListListener;
-
-
 
     @Override
-    protected ArrayList<Movie> doInBackground(Object... params) {
-
+    protected ArrayList<Trailer> doInBackground(Object... params) {
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
 
-        String sortBy = (String) params[0];
-        updateListListener = (UpdateListListener) params[1];
-        String movieJsonStr = null;
+        String movieId = (String) params[0];
+        //updateListListener = (UpdateListListener) params[1];
+        String movieTrailerJsonStr = null;
 
         try {
-            final String MOVIE_BASE_URL = "http://api.themoviedb.org/3/discover/movie?";
-            final String SORT_PARAM = "sort_by";
+            final String MOVIE_BASE_URL = "http://api.themoviedb.org/3/movie/";
             final String API_KEY_PARAM = "api_key";
 
             Uri uri = Uri.parse(MOVIE_BASE_URL).buildUpon()
-                    .appendQueryParameter(SORT_PARAM, sortBy)
+                    .appendPath(movieId)
+                    .appendPath("videos")
                     .appendQueryParameter(API_KEY_PARAM, API_KEY)
                     .build();
 
@@ -79,8 +73,8 @@ public class FetchMoviesTask extends AsyncTask<Object, Void, ArrayList<Movie>> {
                 return null;
             }
 
-            movieJsonStr = buffer.toString();
-            Log.v(LOG_TAG, movieJsonStr);
+            movieTrailerJsonStr = buffer.toString();
+            Log.v(LOG_TAG, movieTrailerJsonStr);
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error ", e);
 
@@ -99,14 +93,14 @@ public class FetchMoviesTask extends AsyncTask<Object, Void, ArrayList<Movie>> {
         }
 
 
-        ArrayList<Movie> moviesList = new ArrayList<>();
+        ArrayList<Trailer> trailerList = new ArrayList<>();
         try {
-            JSONObject moviesJson = new JSONObject(movieJsonStr);
-            JSONArray moviesArray = moviesJson.getJSONArray("results");
+            JSONObject trailersJson = new JSONObject(movieTrailerJsonStr);
+            JSONArray trailersArray = trailersJson.getJSONArray("results");
 
 
-            for (int i = 0; i < moviesArray.length(); i++) {
-                moviesList.add(new Gson().fromJson(moviesArray.get(i).toString(), Movie.class));
+            for (int i = 0; i < trailersArray.length(); i++) {
+                trailerList.add(new Gson().fromJson(trailersArray.get(i).toString(), Trailer.class));
             }
 
 
@@ -115,12 +109,6 @@ public class FetchMoviesTask extends AsyncTask<Object, Void, ArrayList<Movie>> {
         }
 
 
-        return moviesList;
-    }
-
-    @Override
-    protected void onPostExecute(ArrayList<Movie> movies) {
-        updateListListener.updateList(movies);
-        super.onPostExecute(movies);
+        return trailerList;
     }
 }

@@ -24,7 +24,6 @@ import java.util.ArrayList;
 
 import portfolio.app.aduran.popularmovies.ViewAdapters.FavoriteMovieCursorRecyclerViewAdapter;
 import portfolio.app.aduran.popularmovies.ViewAdapters.MoviePosterRecyclerViewAdapter;
-import portfolio.app.aduran.popularmovies.data.MovieColumns;
 import portfolio.app.aduran.popularmovies.data.MovieProvider;
 import portfolio.app.aduran.popularmovies.interfaces.OnListFragmentInteractionListener;
 import portfolio.app.aduran.popularmovies.interfaces.UpdateListListener;
@@ -122,7 +121,7 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
 
         movieList = new ArrayList<>();
         moviePosterRecyclerViewAdapter = new MoviePosterRecyclerViewAdapter(movieList, mListener, getActivity());
-        favoriteMovieCursorRecyclerViewAdapter = new FavoriteMovieCursorRecyclerViewAdapter(mListener, getContext(), null);
+        favoriteMovieCursorRecyclerViewAdapter = new FavoriteMovieCursorRecyclerViewAdapter(mListener, getActivity(), null);
 
         FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -178,7 +177,7 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
                 null,
                 null,
                 null,
-              MovieColumns._ID);
+                null);
     }
 
     @Override
