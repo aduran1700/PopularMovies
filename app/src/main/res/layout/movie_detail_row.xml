@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <TextView
+        android:id="@+id/movie_title"
+        android:layout_width="match_parent"
+        android:layout_height="130dp"
+        android:gravity="center_vertical"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/colorAccent"
+        android:textColor="@android:color/white"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <ImageView
+        android:id="@+id/movie_poster"
+        android:layout_width="150dp"
+        android:layout_height="235dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_below="@+id/movie_title"
+        android:contentDescription="@string/default_poster_description" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:id="@+id/movie_date"
+        android:layout_toRightOf="@+id/movie_poster"
+        android:layout_toEndOf="@+id/movie_poster"
+        android:layout_alignTop="@+id/movie_poster"
+        tools:text="Movie Name" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:id="@+id/movie_rating"
+        android:layout_toRightOf="@+id/movie_poster"
+        android:layout_toEndOf="@+id/movie_poster"
+        android:layout_below="@+id/movie_date"
+        tools:text="9/10" />
+
+    <Button
+        android:id="@+id/fav_button"
+        android:layout_width="160dp"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_toRightOf="@+id/movie_poster"
+        android:layout_toEndOf="@+id/movie_poster"
+        android:text="@string/mark_favorite"
+        android:layout_below="@+id/movie_rating" />
+
+    <TextView
+        android:id="@+id/movie_synopsis"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:layout_below="@+id/movie_poster"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginTop="16dp" />
+
+
+
+</RelativeLayout>
+

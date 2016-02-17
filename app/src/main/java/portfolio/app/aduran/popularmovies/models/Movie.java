@@ -1,6 +1,7 @@
 package portfolio.app.aduran.popularmovies.models;
 
 
+import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -50,9 +51,15 @@ public class Movie implements Parcelable {
     @SerializedName("popularity")
     private double popularity;
 
+    public Uri favoriteUri;
+
     public String getPosterFullURL() {
         return BASE_POSTER_URL + poster;
     }
+
+
+
+
 
     @Override
     public int describeContents() {

@@ -7,4 +7,6 @@
     <string name="mark_favorite">Mark As Favorite</string>
     <string name="remove_favorite">Remove From Favorites</string>
     <string name="play_text">Play</string>
+    <string name="trailers_text">Trailers:</string>
+
 </resources>

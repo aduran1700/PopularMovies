@@ -1,6 +1,5 @@
 package portfolio.app.aduran.popularmovies;
 
-import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -8,24 +7,20 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
 
-import com.squareup.picasso.Picasso;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
+import portfolio.app.aduran.popularmovies.ViewAdapters.MovieRecyclerViewAdapter;
 import portfolio.app.aduran.popularmovies.data.MovieColumns;
 import portfolio.app.aduran.popularmovies.data.MovieProvider;
 import portfolio.app.aduran.popularmovies.interfaces.UpdateMovieDetailsListener;
 import portfolio.app.aduran.popularmovies.models.Movie;
+import portfolio.app.aduran.popularmovies.models.Review;
 import portfolio.app.aduran.popularmovies.models.Trailer;
 
 
@@ -35,14 +30,10 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     public static final String MOVIE = "MOVIE";
     private static final int MOVIE_LOADER = 0;
     private Uri mUri;
-    private Movie movie;
-
-    private ImageView mMoviePosterView;
-    private TextView mMovieTitleView;
-    private TextView mMovieSynopsis;
-    private TextView mMovieDateView;
-    private TextView mMovieRatingView;
-    private Button mFavButtonView;
+    private Movie mMovie;
+    private RecyclerView list;
+    private ArrayList<Object> mMovieInfo;
+    private MovieRecyclerViewAdapter movieRecyclerViewAdapter;
 
     public MovieFragment() {
         // Required empty public constructor
@@ -60,34 +51,16 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             if (arguments.containsKey(MovieFragment.MOVIE_URI))
                 mUri = arguments.getParcelable(MovieFragment.MOVIE_URI);
             else
-                movie = arguments.getParcelable(MovieFragment.MOVIE);
+                mMovie = arguments.getParcelable(MovieFragment.MOVIE);
         }
 
         View view = inflater.inflate(R.layout.fragment_movie, container, false);
 
-        mMoviePosterView = (ImageView) view.findViewById(R.id.movie_poster);
-        mMovieTitleView = (TextView) view.findViewById(R.id.movie_title);
-        mMovieSynopsis = (TextView) view.findViewById(R.id.movie_synopsis);
-        mMovieDateView = (TextView) view.findViewById(R.id.movie_date);
-        mMovieRatingView = (TextView) view.findViewById(R.id.movie_rating);
-        mFavButtonView = (Button) view.findViewById(R.id.fav_button);
+        list = (RecyclerView) view.findViewById(R.id.list);
 
-        if (null != movie) {
+        if (null != mMovie) {
             showMovie();
         }
-
-
-
-
-        mFavButtonView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mUri == null)
-                    addToFavorites();
-                else
-                    removeFromFavorites();
-            }
-        });
 
         return view;
     }
@@ -127,7 +100,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             String overview = data.getString(data.getColumnIndex(MovieColumns.COLUMN_OVERVIEW));
             double popularity = data.getDouble(data.getColumnIndex(MovieColumns.COLUMN_POPULARITY));
 
-            movie = new Movie(movieId, title, poster, overview, average, date, popularity);
+            mMovie = new Movie(movieId, title, poster, overview, average, date, popularity);
             showMovie();
         }
     }
@@ -138,62 +111,54 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     }
 
     private void showMovie() {
-        new FetchMovieTrailerTask().execute(movie.getMovieId() + "");
-
-        Cursor cursor = getActivity().getContentResolver().query(MovieProvider.Movies.CONTENT_URI, null, MovieColumns.COLUMN_MOVIE_ID +"="+movie.getMovieId(), null,null);
+        Cursor cursor = getActivity().getContentResolver().query(MovieProvider.Movies.CONTENT_URI, null, MovieColumns.COLUMN_MOVIE_ID +"="+mMovie.getMovieId(), null,null);
 
         if(cursor != null)
             if(cursor.moveToFirst()) {
-                mFavButtonView.setText(getString(R.string.remove_favorite));
-                mUri = MovieProvider.Movies.withId(cursor.getLong(cursor.getColumnIndex(MovieColumns._ID)));
+                mMovie.favoriteUri = (MovieProvider.Movies.withId(cursor.getLong(cursor.getColumnIndex(MovieColumns._ID))));
             }
 
+        mMovieInfo = new ArrayList<>();
+        mMovieInfo.add(mMovie);
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        movieRecyclerViewAdapter = new MovieRecyclerViewAdapter(mMovieInfo, getActivity());
+        list.setLayoutManager(new LinearLayoutManager(getActivity()));
+        list.setAdapter(movieRecyclerViewAdapter);
 
-        Picasso.with(getActivity()).load(movie.getPosterFullURL()).into(mMoviePosterView);
-        mMovieTitleView.setText(movie.getOriginalTitle());
-        mMovieSynopsis.setText(movie.getPlotSynopsis());
-        try {
-            Date movieDate = simpleDateFormat.parse(movie.getReleaseDate());
-            simpleDateFormat = new SimpleDateFormat("MMMM yyyy");
-            mMovieDateView.setText(simpleDateFormat.format(movieDate));
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        String ratingText = movie.getUserRating() + "/10";
+        new FetchMovieTrailerTask().execute(mMovie.getMovieId() + "", this);
 
-        mMovieRatingView.setText(ratingText);
     }
 
-    private void addToFavorites() {
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(MovieColumns.COLUMN_MOVIE_ID, movie.getMovieId());
-        contentValues.put(MovieColumns.COLUMN_ORIGINAL_TITLE, movie.getOriginalTitle());
-        contentValues.put(MovieColumns.COLUMN_POPULARITY, movie.getPopularity());
-        contentValues.put(MovieColumns.COLUMN_VOTE_AVERAGE, movie.getUserRating());
-        contentValues.put(MovieColumns.COLUMN_POSTER_PATH, movie.getPosterFullURL());
-        contentValues.put(MovieColumns.COLUMN_RELEASE_DATE, movie.getReleaseDate());
-        contentValues.put(MovieColumns.COLUMN_OVERVIEW, movie.getPlotSynopsis());
 
-        mUri = getActivity().getContentResolver().insert(MovieProvider.Movies.CONTENT_URI, contentValues);
-
-        mFavButtonView.setText(getString(R.string.remove_favorite));
-    }
-
-    private void removeFromFavorites() {
-        getActivity().getContentResolver().delete(mUri, null, null);
-        mUri = null;
-        mFavButtonView.setText(getString(R.string.mark_favorite));
-    }
-
-    @Override
+   @Override
     public void addTrailers(ArrayList<Trailer> trailers) {
+       int size = trailers.size();
+       if(size > 1) {
+           mMovieInfo.add("Trailers:");
+       } else if(size == 1) {
+           mMovieInfo.add("Trailer:");
+       }
+        for(int i = 0; i < size; i++) {
+            mMovieInfo.add(trailers.get(i));
+        }
+       movieRecyclerViewAdapter.notifyDataSetChanged();
+       new FetchMovieReviewTask().execute(mMovie.getMovieId() + "", this);
 
     }
 
     @Override
-    public void addReviews() {
+    public void addReviews(ArrayList<Review> reviews) {
+
+        int size = reviews.size();
+        if(size > 1) {
+            mMovieInfo.add("Reviews:");
+        } else if(size == 1) {
+            mMovieInfo.add("Review:");
+        }
+        for(int i = 0; i < size; i++) {
+            mMovieInfo.add(reviews.get(i));
+        }
+        movieRecyclerViewAdapter.notifyDataSetChanged();
 
     }
 }

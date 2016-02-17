@@ -18,13 +18,15 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
+import portfolio.app.aduran.popularmovies.interfaces.UpdateMovieDetailsListener;
 import portfolio.app.aduran.popularmovies.models.Trailer;
 
 
 public class FetchMovieTrailerTask extends AsyncTask<Object, Void, ArrayList<Trailer>> {
 
     private final String LOG_TAG = FetchMovieTrailerTask.class.getSimpleName();
-    private final String API_KEY = "";
+    private final String API_KEY = "abc9deb8e6d7494797aad038604f7aeb";
+    private UpdateMovieDetailsListener updateMovieDetailsListener;
 
     @Override
     protected ArrayList<Trailer> doInBackground(Object... params) {
@@ -32,7 +34,7 @@ public class FetchMovieTrailerTask extends AsyncTask<Object, Void, ArrayList<Tra
         BufferedReader reader = null;
 
         String movieId = (String) params[0];
-        //updateListListener = (UpdateListListener) params[1];
+        updateMovieDetailsListener = (UpdateMovieDetailsListener) params[1];
         String movieTrailerJsonStr = null;
 
         try {
@@ -98,9 +100,12 @@ public class FetchMovieTrailerTask extends AsyncTask<Object, Void, ArrayList<Tra
             JSONObject trailersJson = new JSONObject(movieTrailerJsonStr);
             JSONArray trailersArray = trailersJson.getJSONArray("results");
 
+            if(trailersArray.length() > 0) {
 
-            for (int i = 0; i < trailersArray.length(); i++) {
-                trailerList.add(new Gson().fromJson(trailersArray.get(i).toString(), Trailer.class));
+
+                for (int i = 0; i < trailersArray.length(); i++) {
+                    trailerList.add(new Gson().fromJson(trailersArray.get(i).toString(), Trailer.class));
+                }
             }
 
 
@@ -110,5 +115,11 @@ public class FetchMovieTrailerTask extends AsyncTask<Object, Void, ArrayList<Tra
 
 
         return trailerList;
+    }
+
+    @Override
+    protected void onPostExecute(ArrayList<Trailer> trailers) {
+        updateMovieDetailsListener.addTrailers(trailers);
+        super.onPostExecute(trailers);
     }
 }
