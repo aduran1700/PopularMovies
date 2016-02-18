@@ -25,7 +25,7 @@ import portfolio.app.aduran.popularmovies.models.Trailer;
 
 public class FetchMovieReviewTask extends AsyncTask<Object, Void, ArrayList<Review>> {
 
-    private final String LOG_TAG = FetchMovieTrailerTask.class.getSimpleName();
+    private final String LOG_TAG = FetchMovieReviewTask.class.getSimpleName();
     private UpdateMovieDetailsListener updateMovieDetailsListener;
 
     @Override
