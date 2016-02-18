@@ -3,7 +3,10 @@ package portfolio.app.aduran.popularmovies.ViewAdapters;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,12 +14,14 @@ import android.view.ViewGroup;
 
 import com.squareup.picasso.Picasso;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
 import portfolio.app.aduran.popularmovies.R;
+import portfolio.app.aduran.popularmovies.Utility;
 import portfolio.app.aduran.popularmovies.ViewHolders.MovieDetailViewHolder;
 import portfolio.app.aduran.popularmovies.ViewHolders.MovieReviewViewHolder;
 import portfolio.app.aduran.popularmovies.ViewHolders.MovieTrailerViewHolder;
@@ -28,7 +33,7 @@ import portfolio.app.aduran.popularmovies.models.Review;
 import portfolio.app.aduran.popularmovies.models.Trailer;
 
 
-public class MovieRecyclerViewAdapter  extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
+public class MovieRecyclerViewAdapter  extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int MOVIE_DETAIL_ROW = 1;
     private static final int MOVIE_TRAILER_ROW = 2;
     private static final int TITLE_ROW = 3;
@@ -75,7 +80,7 @@ public class MovieRecyclerViewAdapter  extends RecyclerView.Adapter<RecyclerView
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         if(holder instanceof MovieDetailViewHolder) {
             final MovieDetailViewHolder movieDetailViewHolder = (MovieDetailViewHolder) holder;
-            Movie movie = (Movie) movieDetailList.get(position);
+            final Movie movie = (Movie) movieDetailList.get(position);
 
 
             if(movie.favoriteUri != null)
@@ -87,13 +92,20 @@ public class MovieRecyclerViewAdapter  extends RecyclerView.Adapter<RecyclerView
 
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
-            Picasso.with(context).load(movie.getPosterFullURL()).into(movieDetailViewHolder.mMoviePosterView);
+            if(movie.image == null)
+                Picasso.with(context).load(movie.getPosterFullURL()).into(movieDetailViewHolder.mMoviePosterView);
+            else
+                movieDetailViewHolder.mMoviePosterView.setImageBitmap(Utility.getImage(movie.image));
+
+
             movieDetailViewHolder.mMovieTitleView.setText(movie.getOriginalTitle());
             movieDetailViewHolder.mMovieSynopsis.setText(movie.getPlotSynopsis());
             try {
-                Date movieDate = simpleDateFormat.parse(movie.getReleaseDate());
-                simpleDateFormat = new SimpleDateFormat("MMMM yyyy");
-                movieDetailViewHolder.mMovieDateView.setText(simpleDateFormat.format(movieDate));
+                if(movie.getReleaseDate().length() == 10) {
+                    Date movieDate = simpleDateFormat.parse(movie.getReleaseDate());
+                    simpleDateFormat = new SimpleDateFormat("MMMM yyyy");
+                    movieDetailViewHolder.mMovieDateView.setText(simpleDateFormat.format(movieDate));
+                }
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -105,11 +117,12 @@ public class MovieRecyclerViewAdapter  extends RecyclerView.Adapter<RecyclerView
             movieDetailViewHolder.mFavButtonView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if(movieDetailViewHolder.mItem.favoriteUri == null)
-                        addToFavorites(movieDetailViewHolder.mItem);
-                    else
+                    if(movieDetailViewHolder.mItem.favoriteUri == null) {
+                        new DownloadImageTask().execute(movie);
+                    } else
                         removeFromFavorites(movieDetailViewHolder.mItem);
                 }
+
             });
         } else if(holder instanceof MovieTrailerViewHolder)  {
             final MovieTrailerViewHolder movieTrailerViewHolder = (MovieTrailerViewHolder) holder;
@@ -120,6 +133,7 @@ public class MovieRecyclerViewAdapter  extends RecyclerView.Adapter<RecyclerView
             movieTrailerViewHolder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+
                     showTrailer(movieTrailerViewHolder.mItem);
                 }
             });
@@ -168,6 +182,7 @@ public class MovieRecyclerViewAdapter  extends RecyclerView.Adapter<RecyclerView
         contentValues.put(MovieColumns.COLUMN_POSTER_PATH, movie.getPosterFullURL());
         contentValues.put(MovieColumns.COLUMN_RELEASE_DATE, movie.getReleaseDate());
         contentValues.put(MovieColumns.COLUMN_OVERVIEW, movie.getPlotSynopsis());
+        contentValues.put(MovieColumns.COLUMN_POSTER_IMAGE, movie.image);
 
         movie.favoriteUri = context.getContentResolver().insert(MovieProvider.Movies.CONTENT_URI, contentValues);
 
@@ -181,6 +196,31 @@ public class MovieRecyclerViewAdapter  extends RecyclerView.Adapter<RecyclerView
     }
 
     private void showTrailer(Trailer trailer) {
-        context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + trailer.getKey())));
+        context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(trailer.getYouTubeTrailer())));
+    }
+
+    private class DownloadImageTask extends AsyncTask<Movie, Void, Movie> {
+
+        protected Movie doInBackground(Movie... movie) {
+            Bitmap bitmap;
+            Movie aMovie = movie[0];
+
+            try {
+                bitmap = Picasso.with(context).load(aMovie.getPosterFullURL()).get();
+
+                if(bitmap != null)
+                    aMovie.image = Utility.getBytes(bitmap);
+                else
+                    aMovie.image = null;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return aMovie;
+        }
+
+
+        protected void onPostExecute(Movie result) {
+            addToFavorites(result);
+        }
     }
 }

@@ -18,6 +18,8 @@ public class Movie implements Parcelable {
         this.userRating = in.readDouble();
         this.releaseDate = in.readString();
         this.popularity = in.readDouble();
+
+
     }
 
     public Movie(int movieId, String originalTitle, String poster, String plotSynopsis, double userRating, String releaseDate, double popularity) {
@@ -52,6 +54,8 @@ public class Movie implements Parcelable {
     private double popularity;
 
     public Uri favoriteUri;
+
+    public byte[] image;
 
     public String getPosterFullURL() {
         return BASE_POSTER_URL + poster;

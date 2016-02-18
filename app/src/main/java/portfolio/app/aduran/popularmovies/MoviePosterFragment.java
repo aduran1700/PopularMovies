@@ -38,8 +38,9 @@ import portfolio.app.aduran.popularmovies.models.Movie;
 public class MoviePosterFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, UpdateListListener {
     private final String LOG_TAG = MoviePosterFragment.class.getSimpleName();
 
-    private static final String ARG_COLUMN_COUNT = "column-count";
     public static final String MOVIE_PREFERENCES = "Movie_Prefs" ;
+    public static final String ARG_COLUMN_COUNT = "column-count";
+
     private static final int CURSOR_LOADER_ID = 0;
 
     private int mColumnCount = 2;
@@ -72,26 +73,12 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
         getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
     }
 
-    @SuppressWarnings("unused")
-    public static MoviePosterFragment newInstance(int columnCount) {
-        MoviePosterFragment fragment = new MoviePosterFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_COLUMN_COUNT, columnCount);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         sharedpreferences = getActivity().getSharedPreferences(MOVIE_PREFERENCES, Context.MODE_PRIVATE);
         sortBy = sharedpreferences.getString("sort_order", "popularity.desc");
-
-
-        if (getArguments() != null) {
-            mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
-        }
     }
 
     @Override
@@ -103,6 +90,12 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
     @Override
     public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
+
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
+        }
+
         View view = inflater.inflate(R.layout.fragment_movieposter_list, container, false);
 
 
@@ -115,7 +108,7 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
             LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
             recyclerView.setLayoutManager(linearLayoutManager);
             linearLayoutManager.setOrientation(LinearLayout.HORIZONTAL);
-        } else {
+        }else {
             recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
         }
 

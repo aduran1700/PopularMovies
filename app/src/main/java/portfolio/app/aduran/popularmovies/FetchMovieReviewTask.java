@@ -26,7 +26,6 @@ import portfolio.app.aduran.popularmovies.models.Trailer;
 public class FetchMovieReviewTask extends AsyncTask<Object, Void, ArrayList<Review>> {
 
     private final String LOG_TAG = FetchMovieTrailerTask.class.getSimpleName();
-    private final String API_KEY = "abc9deb8e6d7494797aad038604f7aeb";
     private UpdateMovieDetailsListener updateMovieDetailsListener;
 
     @Override
@@ -45,7 +44,7 @@ public class FetchMovieReviewTask extends AsyncTask<Object, Void, ArrayList<Revi
             Uri uri = Uri.parse(MOVIE_BASE_URL).buildUpon()
                     .appendPath(movieId)
                     .appendPath("reviews")
-                    .appendQueryParameter(API_KEY_PARAM, API_KEY)
+                    .appendQueryParameter(API_KEY_PARAM, BuildConfig.THE_MOVIE_DB_API_KEY)
                     .build();
 
 

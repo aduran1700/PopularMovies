@@ -1,5 +1,6 @@
 package portfolio.app.aduran.popularmovies;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -7,9 +8,14 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.ShareActionProvider;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -26,17 +32,19 @@ import portfolio.app.aduran.popularmovies.models.Trailer;
 
 public class MovieFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, UpdateMovieDetailsListener {
     private static final String LOG_TAG = MovieFragment.class.getSimpleName();
+    private ShareActionProvider mShareActionProvider;
     public static final String MOVIE_URI = "URI";
     public static final String MOVIE = "MOVIE";
     private static final int MOVIE_LOADER = 0;
     private Uri mUri;
     private Movie mMovie;
+    private Trailer mTrailer;
     private RecyclerView list;
     private ArrayList<Object> mMovieInfo;
     private MovieRecyclerViewAdapter movieRecyclerViewAdapter;
 
     public MovieFragment() {
-        // Required empty public constructor
+        setHasOptionsMenu(true);
     }
 
 
@@ -99,8 +107,11 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             double average = data.getDouble(data.getColumnIndex(MovieColumns.COLUMN_VOTE_AVERAGE));
             String overview = data.getString(data.getColumnIndex(MovieColumns.COLUMN_OVERVIEW));
             double popularity = data.getDouble(data.getColumnIndex(MovieColumns.COLUMN_POPULARITY));
+            byte[] image = data.getBlob(data.getColumnIndex(MovieColumns.COLUMN_POSTER_IMAGE));
+
 
             mMovie = new Movie(movieId, title, poster, overview, average, date, popularity);
+            mMovie.image = image;
             showMovie();
         }
     }
@@ -132,16 +143,21 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
    @Override
     public void addTrailers(ArrayList<Trailer> trailers) {
-       int size = trailers.size();
-       if(size > 1) {
-           mMovieInfo.add("Trailers:");
-       } else if(size == 1) {
-           mMovieInfo.add("Trailer:");
+       if(trailers != null) {
+           int size = trailers.size();
+           if (size > 1) {
+               mMovieInfo.add("Trailers:");
+           } else if (size == 1) {
+               mMovieInfo.add("Trailer:");
+           }
+           for (int i = 0; i < size; i++) {
+               if (i == 0) {
+                   mTrailer = trailers.get(i);
+               }
+               mMovieInfo.add(trailers.get(i));
+           }
+           movieRecyclerViewAdapter.notifyDataSetChanged();
        }
-        for(int i = 0; i < size; i++) {
-            mMovieInfo.add(trailers.get(i));
-        }
-       movieRecyclerViewAdapter.notifyDataSetChanged();
        new FetchMovieReviewTask().execute(mMovie.getMovieId() + "", this);
 
     }
@@ -149,16 +165,40 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     @Override
     public void addReviews(ArrayList<Review> reviews) {
 
-        int size = reviews.size();
-        if(size > 1) {
-            mMovieInfo.add("Reviews:");
-        } else if(size == 1) {
-            mMovieInfo.add("Review:");
+        if (reviews != null) {
+            int size = reviews.size();
+            if (size > 1) {
+                mMovieInfo.add("Reviews:");
+            } else if (size == 1) {
+                mMovieInfo.add("Review:");
+            }
+            for (int i = 0; i < size; i++) {
+                mMovieInfo.add(reviews.get(i));
+            }
+            movieRecyclerViewAdapter.notifyDataSetChanged();
         }
-        for(int i = 0; i < size; i++) {
-            mMovieInfo.add(reviews.get(i));
-        }
-        movieRecyclerViewAdapter.notifyDataSetChanged();
 
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.movie_menu, menu);
+
+        MenuItem menuItem = menu.findItem(R.id.action_share);
+
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
+
+        if (mTrailer != null) {
+            mShareActionProvider.setShareIntent(createShareForecastIntent());
+        }
+    }
+
+    private Intent createShareForecastIntent() {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, mTrailer.getYouTubeTrailer());
+
+        return shareIntent;
     }
 }

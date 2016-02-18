@@ -14,4 +14,8 @@ public class Trailer {
     public String getName() {
         return name;
     }
+
+    public String getYouTubeTrailer() {
+        return "http://www.youtube.com/watch?v=" + key;
+    }
 }

@@ -25,7 +25,6 @@ import portfolio.app.aduran.popularmovies.models.Trailer;
 public class FetchMovieTrailerTask extends AsyncTask<Object, Void, ArrayList<Trailer>> {
 
     private final String LOG_TAG = FetchMovieTrailerTask.class.getSimpleName();
-    private final String API_KEY = "abc9deb8e6d7494797aad038604f7aeb";
     private UpdateMovieDetailsListener updateMovieDetailsListener;
 
     @Override
@@ -44,7 +43,7 @@ public class FetchMovieTrailerTask extends AsyncTask<Object, Void, ArrayList<Tra
             Uri uri = Uri.parse(MOVIE_BASE_URL).buildUpon()
                     .appendPath(movieId)
                     .appendPath("videos")
-                    .appendQueryParameter(API_KEY_PARAM, API_KEY)
+                    .appendQueryParameter(API_KEY_PARAM, BuildConfig.THE_MOVIE_DB_API_KEY)
                     .build();
 
 
@@ -100,14 +99,10 @@ public class FetchMovieTrailerTask extends AsyncTask<Object, Void, ArrayList<Tra
             JSONObject trailersJson = new JSONObject(movieTrailerJsonStr);
             JSONArray trailersArray = trailersJson.getJSONArray("results");
 
-            if(trailersArray.length() > 0) {
 
-
-                for (int i = 0; i < trailersArray.length(); i++) {
-                    trailerList.add(new Gson().fromJson(trailersArray.get(i).toString(), Trailer.class));
-                }
+            for (int i = 0; i < trailersArray.length(); i++) {
+                trailerList.add(new Gson().fromJson(trailersArray.get(i).toString(), Trailer.class));
             }
-
 
         } catch (JSONException e) {
             Log.e(LOG_TAG, "Error ", e);

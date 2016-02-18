@@ -8,5 +8,6 @@
     <string name="remove_favorite">Remove From Favorites</string>
     <string name="play_text">Play</string>
     <string name="trailers_text">Trailers:</string>
+    <string name="action_share">Share</string>
 
 </resources>

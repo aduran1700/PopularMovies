@@ -26,7 +26,6 @@ import portfolio.app.aduran.popularmovies.models.Movie;
 public class FetchMoviesTask extends AsyncTask<Object, Void, ArrayList<Movie>> {
 
     private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
-    private final String API_KEY = "abc9deb8e6d7494797aad038604f7aeb";
     UpdateListListener updateListListener;
 
 
@@ -48,7 +47,7 @@ public class FetchMoviesTask extends AsyncTask<Object, Void, ArrayList<Movie>> {
 
             Uri uri = Uri.parse(MOVIE_BASE_URL).buildUpon()
                     .appendQueryParameter(SORT_PARAM, sortBy)
-                    .appendQueryParameter(API_KEY_PARAM, API_KEY)
+                    .appendQueryParameter(API_KEY_PARAM, BuildConfig.THE_MOVIE_DB_API_KEY)
                     .build();
 
 

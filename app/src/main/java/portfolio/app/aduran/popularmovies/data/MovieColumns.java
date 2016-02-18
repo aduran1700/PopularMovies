@@ -14,5 +14,6 @@ public interface MovieColumns {
     @DataType(DataType.Type.INTEGER)  String COLUMN_VOTE_AVERAGE = "vote_average";
     @DataType(DataType.Type.TEXT) String COLUMN_OVERVIEW = "overview";
     @DataType(DataType.Type.INTEGER) String COLUMN_POPULARITY = "popularity";
+    @DataType(DataType.Type.BLOB) String COLUMN_POSTER_IMAGE = "poster_image";
 
 }
